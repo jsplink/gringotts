@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="en"><head><title>src/mixins/form-errors</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="citare-relative-root" content="../../"><meta name="citare-document-path" content="src/mixins/form-errors"><meta name="citare-project-path" content="src/mixins/form-errors.coffee"><meta name="citare-github-url" content="https://github.com/lookout/gringotts"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="bg"></div><div id="meta"><div class="file-path"><a href="https://github.com/lookout/gringotts/blob/master/src/mixins/form-errors.coffee">src/mixins/form-errors.coffee</a></div></div><div id="document" class="codedoc"><div class="segment"><div class="comments"><div class="wrapper"><p>This mixin will take a JSON blob that contains an <code>errors</code> hash
+<strong>e.g.</strong> <code>{...., &quot;errors&quot;: {&quot;PROP1&quot;: &quot;msg&quot;, &quot;PROP2&quot;: &quot;msg2&quot;...}}</code>
+and place a Bootstrap <code>.help-block</code> below the <code>input</code> whose
+selector matches <code>PROP</code> above. The content of said element will
+be the <code>msg</code> value associated with the <code>PROP</code>.</p>
+<p>Generic errors are specified with a <code>generic</code> key in the <code>errors</code>
+hash where the messages are listed in an array as the values of
+the key.</p>
+<p>We default to using the <code>name</code> attribute, but other attributes can be
+specified via the <code>opts</code> hash with <code>inputAttr</code>.</p>
+<p><code>id</code> and <code>class</code> attributes will use the appropriate selectors.</p></div></div><div class="code"><div class="wrapper">define <span class="function"><span class="params">(<span class="built_in">require</span>, <span class="built_in">exports</span>)</span> -&gt;</span>
+  _ = <span class="built_in">require</span> <span class="string">'underscore'</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Map of the different methods for each attribute type.</p></div></div><div class="code"><div class="wrapper">  selectorFns =
+    id: (field) -&gt; "##{field}"
+    class: (field) -&gt; ".#{field}"
+    other: (field) -&gt; "[#{selectedAttr}='#{field}']"</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p><code>opts</code> configurables</p></div></div><div class="code"><div class="wrapper">  genericErrMsg = <span class="string">''</span>
+  selector = <span class="string">''</span>
+  selectedAttr = <span class="string">''</span>
+  specificErrors = <span class="literal">false</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Helper method to wrap message in Bootstrap element.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">errorBlock</span> = <span class="params">(error)</span> -&gt;</span>
+    <span class="string">"&lt;p class='help-block'&gt;<span class="subst">#{error}</span>&lt;/p&gt;"</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>These can be overriden after being mixed in to configure the type
+of query used, DOM insertion method and/or the content added.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">genericError</span> = <span class="params">(error)</span> -&gt;</span>
+    <span class="property">@$</span>(<span class="string">'form:first'</span>).prepend errorBlock error
+  <span class="function"><span class="title">specificError</span> = <span class="params">(query, error)</span> -&gt;</span>
+    <span class="property">@$</span>(<span class="string">"<span class="subst">#{query}</span>:first"</span>).after errorBlock error
+
+  <span class="function"><span class="title">parseErrors</span> = <span class="params">(errors)</span> -&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Display generic error string if there are no errors.
+This string can be configured with <code>opts.genericErrMsg</code>.</p></div></div><div class="code"><div class="wrapper">    <span class="keyword">if</span> !errors <span class="keyword">or</span> _.isEmpty errors
+      <span class="keyword">return</span> <span class="property">@genericError</span> genericErrMsg</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Show any generic errors at the top of the form.</p></div></div><div class="code"><div class="wrapper">    errorStrings = errors.generic
+    <span class="keyword">if</span> _.isArray(errorStrings) <span class="keyword">and</span> errorStrings.length &gt; <span class="number">0</span>
+      _.each errorStrings, <span class="function"><span class="params">(err)</span> -&gt;</span>
+        <span class="property">@genericError</span> err
+      , <span class="keyword">this</span>
+    <span class="keyword">else</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Listen to this event to do any specific logic or
+processing before specific errors are applied if
+specified via <code>opts.specificErrors</code>.</p></div></div><div class="code"><div class="wrapper">      <span class="property">@trigger</span> <span class="string">'specificErrors:before'</span>, errors <span class="keyword">if</span> specificErrors
+
+      _.each errors, <span class="function"><span class="params">(val, field)</span> -&gt;</span>
+        <span class="property">@specificError</span> selector(field), errors[field]
+      , <span class="keyword">this</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>For the time being, the mixin supports only a single form per (sub)?view.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">exports</span> = <span class="params">(opts = {})</span> -&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Message to display for general/parse errors.</p></div></div><div class="code"><div class="wrapper">    genericErrMsg =
+      opts.genericErrMsg <span class="keyword">or</span> <span class="string">'There was a problem. Please try again.'</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Flag for firing event before handling specific errors.</p></div></div><div class="code"><div class="wrapper">    specificErrors = opts.specificErrors</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Determine the type of selector the library will use.</p></div></div><div class="code"><div class="wrapper">    selectedAttr = opts.inputAttr <span class="keyword">or</span> <span class="string">'name'</span>
+    selector = selectorFns[selectedAttr] <span class="keyword">or</span> selectorFns.other
+
+    <span class="property">@genericError</span> = genericError
+    <span class="property">@specificError</span> = specificError
+    <span class="property">@parseErrors</span> = parseErrors
+    <span class="keyword">this</span></div></div></div><div id="segment-footer"><div id="footer"><a href="https://github.com/druide/citare-scriptum" target="_blank">Generated by Citare scriptum</a></div></div></div></body></html>

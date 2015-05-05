@@ -1,0 +1,84 @@
+<!DOCTYPE html><html lang="en"><head><title>src/mixins/notification</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="citare-relative-root" content="../../"><meta name="citare-document-path" content="src/mixins/notification"><meta name="citare-project-path" content="src/mixins/notification.coffee"><meta name="citare-github-url" content="https://github.com/lookout/gringotts"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="bg"></div><div id="meta"><div class="file-path"><a href="https://github.com/lookout/gringotts/blob/master/src/mixins/notification.coffee">src/mixins/notification.coffee</a></div></div><div id="document" class="codedoc"><div class="segment"><div class="comments"><div class="wrapper"><p>This mixin provides a view the ability to display a notification
+and undo a server request by deferring it with a timeout.</p>
+<p>It requires a <code>model</code> with an <code>opts</code> attribute which should be
+an object with a <code>success</code> and <code>undo</code> key with a corresponding
+method.</p>
+<p>After <code>4ms</code>, it will remove the notification and execute the
+<code>success</code> method if provided. Pass in a <code>sticky</code> flag if you
+don&#39;t want the notification to dismiss. Sticky notifications
+only dismiss manually or on route.</p>
+<p>The action can be undone by providing a <code>undo()</code> method which
+ will be invoked when the associated element is clicked.</p>
+<p>If an associated model is provided in the <code>opts</code> object under
+the key <code>model</code>, it will listen for disposal and run <code>success</code>
+immediately.</p>
+<p>Classes can be added on an per instance basis with the <code>classes</code>
+key on <code>opts</code>.</p>
+<p>A <code>link</code> can be provided to append to the notification.</p>
+<p>A <code>click</code> handler can be provided which takes the form of an <code>object</code>
+with a key for <code>selector</code> and one for <code>handler</code> which are the arguments used
+by <code>@delegate</code>. If <code>undo</code> is true it will overwrite <code>click</code>.</p>
+<p>Fade speed, timeout length, undo selector, stickiness, whether navigate
+dismisses, link, click handler, and classes can be configured via the <code>opts</code>
+hash this mixin is called with.</p></div></div><div class="code"><div class="wrapper">define <span class="function"><span class="params">(<span class="built_in">require</span>, <span class="built_in">exports</span>)</span> -&gt;</span>
+  advice = <span class="built_in">require</span> <span class="string">'flight/advice'</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Configurables</p></div></div><div class="code"><div class="wrapper">  fadeSpeed = <span class="number">0</span>
+  reqTimeout = <span class="number">0</span>
+  undoSelector = <span class="string">''</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Local reference for the timeout.</p></div></div><div class="code"><div class="wrapper">  notificationTimeout = <span class="literal">null</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Override to customize the undo element.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">getUndoElement</span> = -&gt;</span>
+    <span class="string">"&lt;a class='undo' href='javascript:;'&gt;
+      Undo
+    &lt;/a&gt;"</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Display undo and start the timeout for the view and optional
+<code>success</code> callback.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">afterRender</span> = -&gt;</span>
+    opts = <span class="property">@model</span>.get(<span class="string">'opts'</span>) <span class="keyword">or</span> {}</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Limit undo to current change.</p></div></div><div class="code"><div class="wrapper">    <span class="keyword">if</span> opts.undo</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Only one action may be undone at any given time.</p></div></div><div class="code"><div class="wrapper">      $(undoSelector).remove()
+      opts.link = <span class="property">@getUndoElement</span>()
+
+    <span class="property">@$el</span>.append opts.link <span class="keyword">if</span> opts.link
+
+    opts.deferred?.done<span class="function"> =&gt;</span>
+      <span class="property">@dismiss</span>()
+
+    <span class="keyword">unless</span> opts.sticky</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Allow instance to specify timeout.</p></div></div><div class="code"><div class="wrapper">      timeout = opts.reqTimeout <span class="keyword">or</span> reqTimeout</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Expose timeout for cancellation elsewhere.</p></div></div><div class="code"><div class="wrapper">      <span class="property">@model</span>.timeout = notificationTimeout = <span class="built_in">window</span>.setTimeout<span class="function"> =&gt;</span>
+        opts.success?()
+        <span class="property">@dismiss</span>()
+      , timeout</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Discard model when the view is removed.
+<code>success</code> callback will execute when view is faded in <code>fadespeed</code> ms.</p>
+<p>Override to specify different behavior when the notification is closed.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">dismiss</span> = -&gt;</span>
+    <span class="property">@$el</span>?.animate {<span class="attribute">opacity</span>: <span class="number">0</span>}, fadeSpeed,<span class="function"> =&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>The view can be disposed before the animation completes.</p></div></div><div class="code"><div class="wrapper">      <span class="property">@model</span>.dispose() <span class="keyword">unless</span> <span class="property">@disposed</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>if <code>opts</code> has <code>navigateDismiss</code> then upon navigation the notification is
+dismissed</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">navigateDismiss</span> = -&gt;</span>
+    opts = <span class="property">@model</span>.get(<span class="string">'opts'</span>) <span class="keyword">or</span> {}
+    <span class="keyword">if</span> opts.navigateDismiss
+      <span class="property">@subscribeEvent</span> <span class="string">'dispatcher:dispatch'</span>,<span class="function"> -&gt;</span>
+        <span class="property">@dismiss</span>()</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Hooks up actions on the notification.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">delegateHandlers</span> = -&gt;</span>
+    <span class="property">@delegate</span> <span class="string">'click'</span>, <span class="string">'.close'</span>, <span class="function"><span class="params">(e)</span> -&gt;</span>
+      e.preventDefault()
+      e.stopPropagation()
+      <span class="property">@dismiss</span>()</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Commit to request when model is disposed.</p></div></div><div class="code"><div class="wrapper">    opts = <span class="property">@model</span>.get(<span class="string">'opts'</span>) <span class="keyword">or</span> {}
+    <span class="keyword">if</span> opts.model
+      <span class="property">@listenTo</span> opts.model, <span class="string">'dispose'</span>,<span class="function"> -&gt;</span>
+        <span class="built_in">window</span>.clearTimeout notificationTimeout
+        opts.success?()
+        <span class="property">@dismiss</span>()</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>This will overwrite other click handlers given in opts.</p></div></div><div class="code"><div class="wrapper">    <span class="keyword">if</span> opts.undo
+      opts.click =
+        <span class="attribute">selector</span>: undoSelector
+        <span class="attribute">handler</span>: <span class="function"><span class="params">(e)</span> -&gt;</span>
+          e.preventDefault()
+          <span class="built_in">window</span>.clearTimeout notificationTimeout
+          opts.undo()
+          <span class="property">@dismiss</span>()</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>You can pass in a selector and handler for a click event</p></div></div><div class="code"><div class="wrapper">    <span class="property">@delegate</span> <span class="string">'click'</span>, opts.click.selector, opts.click.handler <span class="keyword">if</span> opts.click</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Add specified classes on an instance basis.</p></div></div><div class="code"><div class="wrapper">    classes = opts.classes <span class="keyword">or</span> <span class="string">'alert-success'</span>
+    <span class="property">@$el</span>.addClass classes
+
+  <span class="function"><span class="title">exports</span> = <span class="params">(opts={})</span> -&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Retrieve options.</p></div></div><div class="code"><div class="wrapper">    undoSelector = opts.undoSelector <span class="keyword">or</span> <span class="string">'.undo'</span>
+    fadeSpeed =
+      <span class="keyword">if</span> <span class="keyword">typeof</span> opts.fadeSpeed <span class="keyword">is</span> <span class="string">'number'</span>
+        opts.fadeSpeed
+      <span class="keyword">else</span>
+        <span class="number">500</span>
+    reqTimeout =
+      <span class="keyword">if</span> <span class="keyword">typeof</span> opts.reqTimeout <span class="keyword">is</span> <span class="string">'number'</span>
+        opts.reqTimeout
+      <span class="keyword">else</span>
+        <span class="number">4000</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Add exposed methods.</p></div></div><div class="code"><div class="wrapper">    <span class="property">@getUndoElement</span> = getUndoElement
+    <span class="property">@dismiss</span> = dismiss</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Set up behaviors.</p></div></div><div class="code"><div class="wrapper">    <span class="property">@after</span> <span class="string">'attach'</span>, delegateHandlers
+    <span class="property">@after</span> <span class="string">'initialize'</span>, navigateDismiss
+    <span class="property">@after</span> <span class="string">'render'</span>, afterRender
+
+    <span class="keyword">this</span></div></div></div><div id="segment-footer"><div id="footer"><a href="https://github.com/druide/citare-scriptum" target="_blank">Generated by Citare scriptum</a></div></div></div></body></html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html><html lang="en"><head><title>src/mixins/service-unavailable</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="citare-relative-root" content="../../"><meta name="citare-document-path" content="src/mixins/service-unavailable"><meta name="citare-project-path" content="src/mixins/service-unavailable.coffee"><meta name="citare-github-url" content="https://github.com/lookout/gringotts"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="bg"></div><div id="meta"><div class="file-path"><a href="https://github.com/lookout/gringotts/blob/master/src/mixins/service-unavailable.coffee">src/mixins/service-unavailable.coffee</a></div></div><div id="document" class="codedoc"><div class="segment"><div class="comments"><div class="wrapper"><p>This mixin alerts the user when APIs are down via a <code>notify</code> event through
+<code>publishEvent</code>. A more specific message is shown for errors with a <code>418</code>
+status code. A <code>service-unavailable</code> event is triggered on the model/collection
+as well.</p>
+<p>The <code>I18n</code> library is invoked if it exists, otherwise it uses a default.</p></div></div><div class="code"><div class="wrapper">define <span class="function"><span class="params">(<span class="built_in">require</span>, <span class="built_in">exports</span>)</span> -&gt;</span>
+  _ = <span class="built_in">require</span> <span class="string">'underscore'</span>
+  utils = <span class="built_in">require</span> <span class="string">'lib/utils'</span>
+
+  <span class="function"><span class="title">serviceErrorCallback</span> = <span class="params">(method, collection, opts)</span> -&gt;</span>
+    callback = opts.error
+    opts.<span class="function"><span class="title">error</span> = <span class="params">($xhr)</span> =&gt;</span>
+      {status} = $xhr</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Don&#39;t trigger for canceled requests.</p></div></div><div class="code"><div class="wrapper">      <span class="keyword">if</span> status <span class="keyword">isnt</span> <span class="number">0</span>
+        callback?.apply (opts.context <span class="keyword">or</span> opts), arguments</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Removes loading indicators present.</p></div></div><div class="code"><div class="wrapper">        <span class="property">@abortSync</span>?()</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p><code>trigger</code> is a safe operation even if disposed.</p></div></div><div class="code"><div class="wrapper">        <span class="property">@trigger</span> <span class="string">'service-unavailable'</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>the notification for 418 is handled in the serviceUnavailableCallback</p></div></div><div class="code"><div class="wrapper">        <span class="keyword">if</span> status <span class="keyword">isnt</span> <span class="number">418</span>
+          error = I18n?.t(<span class="string">'error.notification'</span>) <span class="keyword">or</span>
+            <span class="string">"There was a problem communicating with the server."</span>
+          <span class="property">@publishEvent</span> <span class="string">'notify'</span>, error,
+            <span class="class">classes: '<span class="title">alert</span>-<span class="title">danger</span>'</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p><code>418</code> is specific to external services being down.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">serviceUnavailableCallback</span> = <span class="params">(method, collection, opts)</span> -&gt;</span>
+    callback = opts.statusCode?[<span class="string">'418'</span>]
+    opts.statusCode ||= {}</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Make sure we don&#39;t override existing <code>statusCode</code> callbacks.</p></div></div><div class="code"><div class="wrapper">    _.extend opts.statusCode,</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>JSON response uses the <code>message</code> property when provided.</p></div></div><div class="code"><div class="wrapper">      <span class="number">418</span>: <span class="function"><span class="params">($xhr)</span> =&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Invoke existing <code>418</code> callback if present.</p></div></div><div class="code"><div class="wrapper">        callback?.apply (opts.context <span class="keyword">or</span> opts), arguments
+        errorState = utils.parseJSON $xhr.responseText
+        message = errorState.message <span class="keyword">or</span> I18n?.t(<span class="string">'error.service'</span>) <span class="keyword">or</span>
+          <span class="string">"There was an error communicating with the server."</span>
+        <span class="property">@publishEvent</span> <span class="string">'notify'</span>, message,
+          <span class="class">classes: '<span class="title">alert</span>-<span class="title">danger</span>'</span>
+          <span class="attribute">reqTimeout</span>: <span class="number">10000</span>
+
+  <span class="function"><span class="title">exports</span> = -&gt;</span>
+    <span class="property">@before</span> <span class="string">'sync'</span>, serviceErrorCallback
+    <span class="property">@before</span> <span class="string">'sync'</span>, serviceUnavailableCallback
+
+    <span class="keyword">this</span></div></div></div><div id="segment-footer"><div id="footer"><a href="https://github.com/druide/citare-scriptum" target="_blank">Generated by Citare scriptum</a></div></div></div></body></html>

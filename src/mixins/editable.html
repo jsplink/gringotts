@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="en"><head><title>src/mixins/editable</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="citare-relative-root" content="../../"><meta name="citare-document-path" content="src/mixins/editable"><meta name="citare-project-path" content="src/mixins/editable.coffee"><meta name="citare-github-url" content="https://github.com/lookout/gringotts"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="bg"></div><div id="meta"><div class="file-path"><a href="https://github.com/lookout/gringotts/blob/master/src/mixins/editable.coffee">src/mixins/editable.coffee</a></div></div><div id="document" class="codedoc"><div class="segment nocomment"><div class="comments"></div><div class="code"><div class="wrapper">define <span class="function"><span class="params">(<span class="built_in">require</span>, <span class="built_in">exports</span>)</span> -&gt;</span>
+  _ = <span class="built_in">require</span> <span class="string">'underscore'</span>
+
+  DEFAULTS =
+    <span class="attribute">errorClass</span>: <span class="string">'error-input'</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Try to convert attribute into a number.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">convertNumber</span> = <span class="params">(attr)</span> -&gt;</span>
+    convertNum = parseInt attr, <span class="number">10</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Throw out strings and floats.</p></div></div><div class="code"><div class="wrapper">    <span class="keyword">if</span> convertNum <span class="keyword">is</span> +attr <span class="keyword">then</span> convertNum <span class="keyword">else</span> attr</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Remove classes and events attached by this mixin.
+Returns a reference to $field</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">cleanEl</span> = <span class="params">(opts)</span> -&gt;</span>
+    opts.$field.removeClass opts.errorClass
+      .removeAttr <span class="string">'contenteditable'</span>
+      .<span class="literal">off</span> <span class="string">'.gringottsEditable'</span>
+    opts.clean.call <span class="keyword">this</span>, opts <span class="keyword">if</span> opts.clean
+    opts.$field</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Accept protocol, email and tel links.
+All others will be made protocol relative.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">updateLink</span> = <span class="params">(opts)</span> -&gt;</span>
+    <span class="keyword">if</span> <span class="regexp">/^(mailto|tel):/</span>.test opts.href</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Update the email or tel link.</p></div></div><div class="code"><div class="wrapper">      opts.$field.attr <span class="string">'href'</span>, opts.href.replace(opts.original, opts.value)
+    <span class="keyword">else</span> <span class="keyword">if</span> opts.value.indexOf(<span class="string">'http'</span>) <span class="keyword">is</span> <span class="number">0</span>
+      opts.$field.attr <span class="string">'href'</span>, opts.value
+    <span class="keyword">else</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Make protocol URI.</p></div></div><div class="code"><div class="wrapper">      opts.$field.attr <span class="string">'href'</span>, <span class="string">"//<span class="subst">#{opts.value}</span>"</span>
+
+  <span class="function"><span class="title">makeEditable</span> = <span class="params">(opts)</span> -&gt;</span>
+    opts.attribute = opts.$field.data <span class="string">'edit'</span>
+    opts.original = opts.model.get opts.attribute</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Setup event handlers for editable.</p></div></div><div class="code"><div class="wrapper">    opts.$field.attr <span class="string">'contenteditable'</span>, <span class="literal">yes</span>
+      .focus()</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Inline handler methods to pass view scope in.</p></div></div><div class="code"><div class="wrapper">      .<span class="literal">on</span><span class="function"><span class="params">(<span class="string">'keydown.gringottsEditable'</span>, (evt) =&gt;
+        keyCode = evt.keyCode</span></span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Prevent newlines in output from Enter key.</p></div></div><div class="code"><div class="wrapper">        <span class="keyword">if</span> keyCode <span class="keyword">is</span> <span class="number">13</span>
+          evt.preventDefault()
+          checkInput.call <span class="keyword">this</span>, opts</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Cancel and undo edits with Esc key.</p></div></div><div class="code"><div class="wrapper">        <span class="keyword">else</span> <span class="keyword">if</span> keyCode <span class="keyword">is</span> <span class="number">27</span>
+          opts.model.validationError = <span class="literal">null</span>
+          cleanEl.call(<span class="keyword">this</span>, opts).text opts.original
+      )</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Clicking an outside element on error will cause a strange state
+because the click takes focus away from element (still editable).</p></div></div><div class="code"><div class="wrapper">      .<span class="literal">on</span>(<span class="string">'blur.gringottsEditable'</span>,<span class="function"> =&gt;</span>
+        checkInput.call <span class="keyword">this</span>, opts
+      )</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Taken from <code>http://stackoverflow.com/questions/12027137/javascript-trick-for-paste-as-plain-text-in-execcommand</code></p></div></div><div class="code"><div class="wrapper">      .<span class="literal">on</span> <span class="string">'paste.gringottsEditable'</span>, <span class="function"><span class="params">(evt)</span> -&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Cancel paste</p></div></div><div class="code"><div class="wrapper">        evt.preventDefault()</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Get text representation of clipboard from original event.</p></div></div><div class="code"><div class="wrapper">        text = evt.originalEvent.clipboardData.getData <span class="string">'text/plain'</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Insert text manually unformatted.</p></div></div><div class="code"><div class="wrapper">        <span class="built_in">document</span>.execCommand <span class="string">'insertHTML'</span>, <span class="literal">no</span>, text
+
+    <span class="built_in">document</span>.execCommand <span class="string">'selectAll'</span>, <span class="literal">no</span>, <span class="literal">null</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Sanitize the input.
+HTML entities are automatically escaped.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">checkInput</span> = <span class="params">(opts)</span> -&gt;</span>
+    opts.value = opts.$field.text()
+    (attrs = {})[opts.attribute] = opts.value</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>We only want to validate specific attributes.</p></div></div><div class="code"><div class="wrapper">    errorExists = opts.model.validationError = opts.model.validate attrs
+    <span class="keyword">if</span> errorExists
+      opts.$field.text(opts.original).focus().addClass opts.errorClass
+      <span class="built_in">document</span>.execCommand <span class="string">'selectAll'</span>, <span class="literal">no</span>, <span class="literal">null</span>
+      opts.error.call <span class="keyword">this</span>, errorExists, opts <span class="keyword">if</span> opts.error
+    <span class="keyword">else</span>
+      cleanEl.call <span class="keyword">this</span>, opts
+
+      <span class="keyword">unless</span> opts.original <span class="keyword">is</span> opts.value</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>For update/undo the link.</p></div></div><div class="code"><div class="wrapper">        opts.href = opts.$field.attr(<span class="string">'href'</span>) <span class="keyword">or</span> <span class="string">''</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Type cast value as necessary.</p></div></div><div class="code"><div class="wrapper">        opts.value = convertNumber opts.value
+
+        opts.success.call <span class="keyword">this</span>, opts <span class="keyword">if</span> opts.success</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Mirror content change to href attribute.</p></div></div><div class="code"><div class="wrapper">        updateLink opts <span class="keyword">if</span> opts.href</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Entry point method to specify a <code>field</code> to be <code>contenteditable</code> and update
+the view&#39;s <code>@model</code>&#39;s <code>data-edit</code> attribute on blur.</p>
+<p><code>opts</code> accepts keys success, error, errorClass
+Anything else will be passed to the callbacks.</p>
+<p><code>success</code>, <code>error</code>, and <code>clean</code> callbacks are invoked after the field loses
+focus. This can happen by blur or enter. If escape is pressed it reverts the
+field to the original value. After blur or enter it will validate the new
+value and invoke <code>success</code> or <code>error</code> depending on the result.
+Callbacks will be invoked with the view they were mixed into as their
+context.</p>
+<p>This works off the assumption that only one editable is used at a time.
+The editable should be a DOM node with a sole child text element
+or compatible link. Links will use the same <code>href</code> as it&#39;s value
+(made protocol-relative if not specified), except for emails and
+telephone numbers which will have the correct prefix prepended.</p>
+<p>In cases where the user attempts to use an editable after another one,
+you may end up unable to undo the first one (if using the notification
+mixin) because the blur handler of the second will “commit” the first.</p>
+<p>If the value can be properly coerced into a Number, that will be used
+as the result to save to the server.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">setupEditable</span> = <span class="params">(clickTarget, field, opts={})</span> -&gt;</span>
+    <span class="property">@delegate</span> <span class="string">'click'</span>, clickTarget, <span class="function"><span class="params">(evt)</span> -&gt;</span>
+      evt.preventDefault()
+      _.defaults opts, DEFAULTS
+      opts.$field = <span class="property">@$</span>(field)
+      opts.model = <span class="property">@model</span>
+      <span class="property">@makeEditable</span> opts
+
+  <span class="function"><span class="title">exports</span> = -&gt;</span>
+    <span class="property">@setupEditable</span> = setupEditable
+    <span class="property">@makeEditable</span> = makeEditable
+    <span class="keyword">this</span></div></div></div><div id="segment-footer"><div id="footer"><a href="https://github.com/druide/citare-scriptum" target="_blank">Generated by Citare scriptum</a></div></div></div></body></html>

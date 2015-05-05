@@ -1,0 +1,35 @@
+<!DOCTYPE html><html lang="en"><head><title>src/mixins/pagination-stats</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="citare-relative-root" content="../../"><meta name="citare-document-path" content="src/mixins/pagination-stats"><meta name="citare-project-path" content="src/mixins/pagination-stats.coffee"><meta name="citare-github-url" content="https://github.com/lookout/gringotts"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="bg"></div><div id="meta"><div class="file-path"><a href="https://github.com/lookout/gringotts/blob/master/src/mixins/pagination-stats.coffee">src/mixins/pagination-stats.coffee</a></div></div><div id="document" class="codedoc"><div class="segment nocomment"><div class="comments"></div><div class="code"><div class="wrapper">define <span class="function"><span class="params">(<span class="built_in">require</span>, <span class="built_in">exports</span>)</span> -&gt;</span>
+  advice = <span class="built_in">require</span> <span class="string">'flight/advice'</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>This method returns an object with properties about the page and
+item counts for the given state of the <code>collection</code>.</p>
+<p>The <code>collection</code> should have <code>scopeable</code> mixed in or an equivalent
+<a href="https://github.com/pages/lookout/gringotts/src/mixins/scopeable.html"><code>scopedUrl</code></a>
+method with associated properties <code>params</code> and <code>count</code>.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">paginationStats</span> = -&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Pull <code>page</code> and <code>per_page</code> directly off <code>params</code> on the <code>collection</code>.</p></div></div><div class="code"><div class="wrapper">    page = <span class="property">@params</span>.page
+    perPage = <span class="property">@params</span>.per_page
+    total = <span class="property">@count</span> <span class="keyword">or</span> <span class="number">0</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Previous page end plus one.</p></div></div><div class="code"><div class="wrapper">    start = (page - <span class="number">1</span>) * perPage + <span class="number">1</span>
+    end = Math.min page * perPage, total
+
+    <span class="keyword">if</span> total
+      maxPage = Math.ceil total / perPage
+      <span class="keyword">if</span> page &gt; maxPage</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Direct out of bound pages to last page.</p></div></div><div class="code"><div class="wrapper">        prevPage = <span class="property">@scopedUrl</span> <span class="attribute">page</span>: maxPage
+      <span class="keyword">else</span> <span class="keyword">if</span> page <span class="keyword">isnt</span> <span class="number">1</span>
+        prevPage = <span class="property">@scopedUrl</span> <span class="attribute">page</span>: page - <span class="number">1</span>
+
+      <span class="keyword">if</span> page &lt; maxPage
+        nextPage = <span class="property">@scopedUrl</span> <span class="attribute">page</span>: page + <span class="number">1</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Flag that can be used to hide pagination if there are no items
+or items all fit on one page.</p></div></div><div class="code"><div class="wrapper">    showPagination = prevPage <span class="keyword">or</span> nextPage
+    {</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>URL w/ query params.</p></div></div><div class="code"><div class="wrapper">      nextPage
+      prevPage</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Boolean</p></div></div><div class="code"><div class="wrapper">      showPagination</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Numbers</p></div></div><div class="code"><div class="wrapper">      start
+      end
+      total
+    }
+
+  <span class="function"><span class="title">pageString</span> = <span class="params">(stats)</span> -&gt;</span>
+    <span class="string">"<span class="subst">#{stats.start}</span>-<span class="subst">#{stats.end}</span> of <span class="subst">#{stats.total}</span>"</span>
+
+  <span class="function"><span class="title">exports</span> = -&gt;</span>
+    <span class="property">@before</span> <span class="string">'initialize'</span>,<span class="function"> -&gt;</span>
+      <span class="property">@on</span> <span class="string">'remove'</span>,<span class="function"> -&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Keep pagination views in sync on archive/delete.</p></div></div><div class="code"><div class="wrapper">        <span class="property">@count</span> = Math.max <span class="number">0</span>, <span class="property">@count</span> - <span class="number">1</span>
+
+    <span class="property">@paginationStats</span> = paginationStats
+    <span class="property">@pageString</span> = pageString
+    <span class="keyword">this</span></div></div></div><div id="segment-footer"><div id="footer"><a href="https://github.com/druide/citare-scriptum" target="_blank">Generated by Citare scriptum</a></div></div></div></body></html>
