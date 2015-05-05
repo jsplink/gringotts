@@ -2,7 +2,7 @@
   advice = <span class="built_in">require</span> <span class="string">'flight/advice'</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>This method returns an object with properties about the page and
 item counts for the given state of the <code>collection</code>.</p>
 <p>The <code>collection</code> should have <code>scopeable</code> mixed in or an equivalent
-<a href="https://github.com/pages/lookout/gringotts/src/mixins/scopeable.html"><code>scopedUrl</code></a>
+<a href="http://hackers.lookout.com/gringotts/src/mixins/service-unavailable.html"><code>scopedUrl</code></a>
 method with associated properties <code>params</code> and <code>count</code>.</p></div></div><div class="code"><div class="wrapper">  <span class="function"><span class="title">paginationStats</span> = -&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Pull <code>page</code> and <code>per_page</code> directly off <code>params</code> on the <code>collection</code>.</p></div></div><div class="code"><div class="wrapper">    page = <span class="property">@params</span>.page
     perPage = <span class="property">@params</span>.per_page
     total = <span class="property">@count</span> <span class="keyword">or</span> <span class="number">0</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Previous page end plus one.</p></div></div><div class="code"><div class="wrapper">    start = (page - <span class="number">1</span>) * perPage + <span class="number">1</span>
