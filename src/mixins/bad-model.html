@@ -1,7 +1,10 @@
 <!DOCTYPE html><html lang="en"><head><title>src/mixins/bad-model</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="citare-relative-root" content="../../"><meta name="citare-document-path" content="src/mixins/bad-model"><meta name="citare-project-path" content="src/mixins/bad-model.coffee"><meta name="citare-github-url" content="https://github.com/lookout/gringotts"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="bg"></div><div id="meta"><div class="file-path"><a href="https://github.com/lookout/gringotts/blob/master/src/mixins/bad-model.coffee">src/mixins/bad-model.coffee</a></div></div><div id="document" class="codedoc"><div class="segment"><div class="comments"><div class="wrapper"><p>Allow the view to redirect to a specified <code>route</code> when a model&#39;s
 request results in a <code>403</code> or <code>404</code>. A <code>notify</code> event will be
 published. You can pass in options for the event with <code>evtOpts</code>
-key in <code>opts</code> where <code>classes</code> and <code>reqTimeout</code> have defaults.</p></div></div><div class="code"><div class="wrapper">define <span class="function"><span class="params">(<span class="built_in">require</span>, <span class="built_in">exports</span>)</span> -&gt;</span>
+key in <code>opts</code> where <code>classes</code> and <code>reqTimeout</code> have defaults.</p>
+<p>Specify a <code>route</code> key in <code>opts</code> to declare the route to redirect to
+and specify a <code>message</code> to be passed with the event. If it&#39;s a function,
+the first argument will be the model.</p></div></div><div class="code"><div class="wrapper">define <span class="function"><span class="params">(<span class="built_in">require</span>, <span class="built_in">exports</span>)</span> -&gt;</span>
   _ = <span class="built_in">require</span> <span class="string">'underscore'</span>
   utils = <span class="built_in">require</span> <span class="string">'../lib/utils'</span>
   advice = <span class="built_in">require</span> <span class="string">'flight/advice'</span>
@@ -10,28 +13,8 @@ key in <code>opts</code> where <code>classes</code> and <code>reqTimeout</code> 
     <span class="class">classes: '<span class="title">alert</span>-<span class="title">danger</span>'</span>
     <span class="attribute">reqTimeout</span>: <span class="number">10000</span>
 
-  <span class="comment">###*
-   * @mixin Standardized user notifications per model sync status errors.
-   *        Optionally redirects the user to a particular route upon error.
-   * @augments {Model}
-   * @param {Object} opts - Bad model configuration object.
-   * @param {(String|Method)} opts.route - Method which accepts the bad
-   *                                     model returns a redirection route.
-   * @param {(String|Method)} opts.message - Method or string which accepts a
-   *                                       bad model instance to return a user
-   *                                       msg.
-   * @param {Object} evtOpts - Options for the publishEvent message
-   *                         notification.
-   * @default {Object} evtOpts
-   * @default {String} evtOpts.classes - 'alert-danger' is the default
-   *                                   notification class.
-   * @default {Number} evtOpts.reqTimeout - 10 seconds is the default
-   *                                      notification timeout.
-   * @returns {Object} this - Returns this instance for chainability.</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>BadModel = (opts={}) -&gt;</p>
-<h3><a name="" class="anchor" href="#"><span></span></a>*</h3>
-<ul>
-<li>@aop {before} delegateListeners - An additional listener delegation.</li>
-</ul></div></div><div class="code"><div class="wrapper">    <span class="property">@before</span> <span class="string">'delegateListeners'</span>,<span class="function"> -&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Setup configuration here for callback to access correct properties.</p></div></div><div class="code"><div class="wrapper">      {message} = opts
+  <span class="function"><span class="title">exports</span> = <span class="params">(opts={})</span> -&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>‘Extend’ the <code>listen</code> hash, even if it&#39;s not present, without
+having this handler overridden if the hash is declared later.</p></div></div><div class="code"><div class="wrapper">    <span class="property">@before</span> <span class="string">'delegateListeners'</span>,<span class="function"> -&gt;</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Setup configuration here for callback to access correct properties.</p></div></div><div class="code"><div class="wrapper">      {message} = opts
       route = opts.route <span class="keyword">or</span> <span class="string">''</span>
 
       evtOpts =
@@ -40,22 +23,13 @@ key in <code>opts</code> where <code>classes</code> and <code>reqTimeout</code> 
         <span class="keyword">else</span>
           DEFAULTS
 
-      <span class="comment">###*
-       * @listens {module:Model~event:error}
-       * @fires notify
-       * @param  {[type]} model [description]
-       * @param  {[type]} $xhr  [description]
-       * @implements {[type]}</span></div></div></div><div class="segment nocode"><div class="comments"><div class="wrapper"><p>  @delegateListener ‘error’, ‘model’, (model, $xhr) -&gt;
-    {id} = model
-    {status} = $xhr
-    if status in <span class="autolink">[400, 403, 404]</span>
-      message = message model if typeof message is ‘function’
-      message ||= “The model #{id} could not be accessed.”</p>
-<pre><code><span class="brief">  # <span class="attribute">Allow </span>for <span class="attribute">multiple </span>arguments <span class="attribute">to </span>be <span class="attribute">passed </span>in <span class="attribute">if </span>route <span class="attribute">returns </span>array
-  <span class="attribute">args = </span>route?(model) <span class="attribute">or </span>route
-  <span class="attribute">args = [</span>args] <span class="attribute">unless </span>_.<span class="attribute">isArray </span>args
-  utils.redirectTo.<span class="attribute">apply </span>utils, <span class="attribute">args
-  # </span>NOTE: <span class="attribute">This</span> <span class="attribute">cannot </span>be <span class="attribute">sticky </span>because <span class="attribute">it </span>triggers <span class="attribute">before </span>navigation!
-  @<span class="attribute">publishEvent '</span>notify', message, evtOpts</span></code></pre>
-<p>this</p>
-<p>exports = BadModel</p></div></div></div><div id="segment-footer"><div id="footer"><a href="https://github.com/druide/citare-scriptum" target="_blank">Generated by Citare scriptum</a></div></div></div></body></html>
+      <span class="property">@delegateListener</span> <span class="string">'error'</span>, <span class="string">'model'</span>, <span class="function"><span class="params">(model, $xhr)</span> -&gt;</span>
+        {id} = model
+        {status} = $xhr
+        <span class="keyword">if</span> status <span class="keyword">in</span> [<span class="number">400</span>, <span class="number">403</span>, <span class="number">404</span>]
+          message = message model <span class="keyword">if</span> <span class="keyword">typeof</span> message <span class="keyword">is</span> <span class="string">'function'</span>
+          message ||= <span class="string">"The model <span class="subst">#{id}</span> could not be accessed."</span></div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>Allow for multiple arguments to be passed in if route returns array</p></div></div><div class="code"><div class="wrapper">          args = route?(model) <span class="keyword">or</span> route
+          args = [args] <span class="keyword">unless</span> _.isArray args
+          utils.redirectTo.apply utils, args</div></div></div><div class="segment"><div class="comments"><div class="wrapper"><p>NOTE: This cannot be sticky because it triggers before navigation!</p></div></div><div class="code"><div class="wrapper">          <span class="property">@publishEvent</span> <span class="string">'notify'</span>, message, evtOpts
+
+    <span class="keyword">this</span></div></div></div><div id="segment-footer"><div id="footer"><a href="https://github.com/druide/citare-scriptum" target="_blank">Generated by Citare scriptum</a></div></div></div></body></html>
