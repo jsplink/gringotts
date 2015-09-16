@@ -60,6 +60,19 @@ module.exports = (grunt) ->
       test:
         src: 'public/test/index.html'
 
+    jsdoc:
+      dist:
+        src: [
+          'public/src/gringotts.js'
+          'public/src/mixins/*.js'
+          'public/src/lib/*.js'
+        ]
+        options:
+          destination: 'public/jsdocs'
+          configure: "jsdoc.conf.json"
+          template: "node_modules/ink-docstrap/template"
+          verbose: true
+
     'citare-scriptum':
       options:
         out: 'public/docs/'
@@ -149,6 +162,7 @@ module.exports = (grunt) ->
           'newer:coffee'
           'coffeelint'
           'blanket_mocha:test'
+          'jsdoc:dist'
         ]
 
       lint:
@@ -160,7 +174,9 @@ module.exports = (grunt) ->
         tasks: 'copy:test'
 
   # Create aliased tasks.
-  grunt.registerTask('default', ['build', 'coffeelint', 'test', 'concurrent'])
+  grunt.registerTask('default',
+    ['build', 'coffeelint', 'test', 'jsdoc:dist', 'concurrent']
+  )
   grunt.registerTask('docs', ['citare-scriptum', 'gh-pages:docs'])
   grunt.registerTask('test', ['blanket_mocha:test'])
   grunt.registerTask('test:ci', ['compile', 'copy', 'blanket_mocha:ci'])
@@ -181,7 +197,6 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'build', [
     'clean'
-    'citare-scriptum'
     'compile'
     'copy'
   ]
